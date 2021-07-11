@@ -1,5 +1,14 @@
-import { defineComponent, ref, withModifiers, withKeys } from 'vue'
+import { defineComponent, ref, withModifiers, reactive } from 'vue'
 import { debounce } from 'lodash-es'
+import TodoHeader from '@/components/TodoHeader'
+import TodoList from '@/components/TodoList'
+
+export interface Person {
+    id: number
+    name: string
+    // isSelected: boolean
+    isComplete: boolean
+}
 
 const HelloWorld = defineComponent({
     props: {
@@ -9,8 +18,13 @@ const HelloWorld = defineComponent({
     },
     setup(props) {
         const count = ref(0)
-        const inputVal = ref('')
         const value1 = ref([new Date(2016, 9, 10, 8, 40), new Date(2016, 9, 10, 9, 40)])
+
+        const data: Person[] = reactive([
+            { id: 10, name: 'sheep', isComplete: false },
+            { id: 20, name: 'Tom', isComplete: true },
+            { id: 30, name: 'Jocky', isComplete: false }
+        ])
 
         const inc = (e: any) => {
             console.log(e)
@@ -22,8 +36,24 @@ const HelloWorld = defineComponent({
             console.log('....')
         }, 1200)
 
-        const inputChange = () => {
-            console.log('输入框value：', inputVal.value)
+        const radomTrueOrFalse = (): boolean => {
+            const mathRadomNum = Math.random()
+            return mathRadomNum > 0.5 ? true : false
+        }
+
+        const addItem = (v: string): void => {
+            const item = {} as Person
+            if (v) {
+                const nextLastNum: number = data[data.length - 1].id + 10
+                item.id = nextLastNum
+                item.name = v
+                item.isComplete = radomTrueOrFalse()
+            }
+            data.push(item)
+        }
+
+        const remove = (index: number): void => {
+            data.splice(index, 1)
         }
 
         return () => (
@@ -48,16 +78,9 @@ const HelloWorld = defineComponent({
                     搜索
                 </el-button>
 
+                <TodoHeader onAdd={addItem} />
                 <div style={'margin-top: 20px'}>
-                    <el-input
-                        style={'width: 200px; margin-right: 20px'}
-                        v-model={inputVal.value}
-                        onKeyup={withKeys(inputChange, ['enter'])}
-                    />
-
-                    <el-button type="primary" onClick={withModifiers(inputChange, ['stop'])}>
-                        获取数据
-                    </el-button>
+                    <TodoList list={data} onDelete={remove} />
                 </div>
             </>
         )
